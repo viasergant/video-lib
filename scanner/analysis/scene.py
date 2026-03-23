@@ -44,8 +44,8 @@ def _detect(video_path: str, fps: float) -> list[float]:
     sample_every_n_frames = max(1, int(fps / 5))
     correlation_threshold = 1.0 - SCENE_THRESHOLD
 
-    cap = cv2.VideoCapture(video_path)
     try:
+        cap = cv2.VideoCapture(video_path)
         scene_timestamps: list[float] = []
         prev_hist: np.ndarray | None = None
         last_scene_ts: float = -_MIN_SCENE_GAP_S  # allow detection at t=0
