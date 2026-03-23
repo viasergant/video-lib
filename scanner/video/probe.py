@@ -3,21 +3,12 @@ from __future__ import annotations
 import json
 import logging
 import subprocess
-from dataclasses import dataclass
 from fractions import Fraction
 from pathlib import Path
 
+from scanner.models import VideoMeta
+
 logger = logging.getLogger(__name__)
-
-
-@dataclass
-class VideoMeta:
-    path: str
-    duration: float
-    fps: float
-    width: int
-    height: int
-    codec: str
 
 
 def probe_video(path: str | Path) -> VideoMeta:
@@ -41,8 +32,9 @@ def probe_video(path: str | Path) -> VideoMeta:
             capture_output=True,
             text=True,
             check=True,
+            timeout=30,
         )
-    except (subprocess.CalledProcessError, FileNotFoundError) as exc:
+    except (subprocess.CalledProcessError, FileNotFoundError, subprocess.TimeoutExpired) as exc:
         logger.error("ffprobe failed for %s: %s", path, exc)
         raise RuntimeError(f"ffprobe failed for {path}") from exc
 
@@ -53,7 +45,10 @@ def probe_video(path: str | Path) -> VideoMeta:
             s for s in data.get("streams", []) if s.get("codec_type") == "video"
         )
 
-        duration = float(fmt.get("duration") or video_stream.get("duration", 0))
+        raw_duration = fmt.get("duration") or video_stream.get("duration")
+        if raw_duration is None:
+            raise ValueError("duration not found in format or video stream")
+        duration = float(raw_duration)
         fps = float(Fraction(video_stream["r_frame_rate"]))
         width = int(video_stream["width"])
         height = int(video_stream["height"])
@@ -62,4 +57,11 @@ def probe_video(path: str | Path) -> VideoMeta:
         logger.error("Failed to parse ffprobe output for %s: %s", path, exc)
         raise RuntimeError(f"Failed to parse ffprobe output for {path}") from exc
 
-    return VideoMeta(path=path, duration=duration, fps=fps, width=width, height=height, codec=codec)
+    return VideoMeta(
+        path=path,
+        duration=duration,
+        fps=fps,
+        width=width,
+        height=height,
+        codec=codec,
+    )

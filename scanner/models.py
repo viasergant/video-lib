@@ -5,6 +5,16 @@ from typing import Literal
 
 
 @dataclass
+class VideoMeta:
+    path: str
+    duration: float
+    fps: float
+    width: int
+    height: int
+    codec: str
+
+
+@dataclass
 class TranscriptSegment:
     start: float
     end: float
