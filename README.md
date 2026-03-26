@@ -24,6 +24,23 @@ ollama list        # should show llava:latest (or your chosen model)
 
 ## Installation
 
+### Linux (Ubuntu 22.04 LTS)
+
+Run the automated installer (requires `sudo`):
+
+```bash
+sudo bash install.sh
+```
+
+This installs Python 3.10+, ffmpeg, Ollama, pulls the `llava:latest` model, creates a `.venv` virtualenv, and installs all Python dependencies. Safe to run multiple times.
+
+After installation:
+
+```bash
+source .venv/bin/activate
+scan --folder /path/to/videos
+```
+
 ### Basic (run-only)
 
 ```bash
